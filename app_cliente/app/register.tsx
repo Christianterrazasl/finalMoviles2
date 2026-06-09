@@ -1,18 +1,43 @@
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
+import { useState } from 'react';
+import { register } from '@/repositories/auth';
 
 export default function RegisterScreen() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [loading, setLoading] = useState(false)
+
+  const handleRegister = async () => {
+    try {
+      if(name === '' || email === '' || password === '' || phone === '') {
+        Alert.alert('Error', 'Por favor, complete todos los campos');
+        return;
+      }
+      setLoading(true);
+      const user = await register( name, email, password, phone);
+      console.log(user);
+      router.push('/login');
+    } catch (error) {
+      Alert.alert('Error', 'Error al registrar');
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  }
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Registro</Text>
       <View style={styles.form}>
-        <TextInput placeholder="Nombre completo" style={styles.input} autoCapitalize="words" />
-        <TextInput placeholder="Email" style={styles.input} keyboardType="email-address" autoCapitalize="none" />
-        <TextInput placeholder="Password" style={styles.input} secureTextEntry />
-        <TextInput placeholder="Teléfono" style={styles.input} keyboardType="phone-pad" />
+        <TextInput placeholder="Nombre completo" style={styles.input} autoCapitalize="words" value={name} onChangeText={setName} />
+        <TextInput placeholder="Email" style={styles.input} keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} />
+        <TextInput placeholder="Password" style={styles.input} secureTextEntry value={password} onChangeText={setPassword} />
+        <TextInput placeholder="Teléfono" style={styles.input} keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
       </View>
-      <Pressable style={styles.button}>
-        <Text style={styles.buttonText}>Continuar</Text>
+      <Pressable disabled={loading} style={styles.button} onPress={handleRegister}>
+        <Text style={styles.buttonText}>{loading ? 'Cargando...' : 'Continuar'}</Text>
       </Pressable>
       <Text style={styles.footer}>
         ¿Ya tienes una cuenta?{' '}
