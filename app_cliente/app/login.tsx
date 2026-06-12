@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import TextButton from '@/components/TextButton';
 import { login } from '@/repositories/auth';
 import { useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 export default function LoginScreen() {
@@ -20,9 +21,14 @@ export default function LoginScreen() {
         }
         try {
             setLoading(true);
-            const user = await login(email, password);
-            console.log(user);
-            router.push('/home');
+            const response = await login(email, password);
+            if(response.status === 200) {
+                await AsyncStorage.setItem('userId', response.data.id.toString());
+                router.push('/home');
+            } else {
+                Alert.alert('Error', 'Credenciales incorrectas');
+            }
+            console.log(response);
         } catch {
             Alert.alert('Error', 'Credenciales incorrectas');
         } finally {
