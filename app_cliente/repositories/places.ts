@@ -10,3 +10,8 @@ export const advancedSearchPlaces = async (advancedSearch: AdvancedSearch) => {
     const { data } = await api.post(`/api/lugares/advancedsearch`, advancedSearch);
     return data;
 }
+
+export const getPlaceById = async (id: number) => {
+    const { data } = await api.get(`/api/lugares/${id}`);
+    return data;
+}

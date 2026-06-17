@@ -1,10 +1,11 @@
 import { View, Text, StyleSheet, TextInput, Pressable, Alert, FlatList } from 'react-native'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PlaceResponse } from '@/types/types';
 import { searchPlaces } from '@/repositories/places';
 import PlaceRow from '@/components/PlaceRow';
 import { router } from 'expo-router';
+import MapView, { Marker, MapMarker } from 'react-native-maps';
 
 
 
@@ -13,6 +14,36 @@ export default function home() {
   const [searchquery, setSearchQuery] = useState('');
   const [places, setPlaces] = useState<PlaceResponse[]>([]);
   const [loading, setLoading] = useState(false);
+  const [mapVisible, setMapVisible] = useState(false);
+  const [selectedPlaceId, setSelectedPlaceId] = useState<number | null>(null);
+  const [calloutPlaceId, setCalloutPlaceId] = useState<number | null>(null);
+  const markerRefs = useRef<Record<number, MapMarker | null>>({});
+
+  const goToPlace = (id: number) => {
+    router.push({
+      pathname: '/place',
+      params: { placeId: String(id) },
+    });
+  };
+
+  const handleMarkerPress = (placeId: number) => {
+    if (calloutPlaceId === placeId) {
+      goToPlace(placeId);
+      setCalloutPlaceId(null);
+      return;
+    }
+    setCalloutPlaceId(placeId);
+    markerRefs.current[placeId]?.showCallout();
+  };
+
+  const handlePlacePress = (placeId: number) => {
+    if (selectedPlaceId === placeId) {
+      goToPlace(placeId);
+      setSelectedPlaceId(null);
+      return;
+    }
+    setSelectedPlaceId(placeId);
+  };
 
   useEffect(() => {
     const loadUserId = async () => {
@@ -34,32 +65,64 @@ export default function home() {
   }
 
   return (
-    <FlatList
-      style={styles.container}
-      data={places}
-      keyExtractor={(item) => String(item.id)}
-      renderItem={({ item }) => <PlaceRow place={item} />}
-      keyboardShouldPersistTaps="handled"
-      contentContainerStyle={styles.content}
-      ListHeaderComponent={
-        <View>
-          <Text style={styles.title}>Home</Text>
-          <TextInput placeholder="Nombre" style={styles.input} value={searchquery} onChangeText={setSearchQuery} />
-          <View style={styles.buttonRow}>
-            <Pressable onPress={handleSearch} style={styles.button}>
-              <Text style={styles.buttonText}>Buscar</Text>
-            </Pressable>
-            <Pressable onPress={() => router.push('/advancedSearch')} style={[styles.button, styles.buttonSecondary]}>
-              <Text style={styles.buttonText}>Buscar avanzado</Text>
-            </Pressable>
-          </View>
-          {loading && <Text>Loading...</Text>}
-          {places.length > 0 && (
-            <Text style={styles.resultsCount}>{places.length} Lugares encontrados</Text>
-          )}
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+
+      <View style={styles.content}>
+        <Text style={styles.title}>Home</Text>
+        <TextInput placeholder="Nombre" style={styles.input} value={searchquery} onChangeText={setSearchQuery} />
+        <View style={styles.buttonRow}>
+          <Pressable onPress={handleSearch} style={styles.button}>
+            <Text style={styles.buttonText}>Buscar</Text>
+          </Pressable>
+          <Pressable onPress={() => router.push('/advancedSearch')} style={[styles.button, styles.buttonSecondary]}>
+            <Text style={styles.buttonText}>Buscar avanzado</Text>
+          </Pressable>
+          <Pressable onPress={() => { setMapVisible(!mapVisible); setCalloutPlaceId(null); }} style={[styles.button, styles.buttonSecondary]}>
+            <Text style={styles.buttonText}>Mapa</Text>
+          </Pressable>
         </View>
-      }
-    />
+        {loading && <Text>Loading...</Text>}
+        {places.length > 0 && (
+          <Text style={styles.resultsCount}>{places.length} Lugares encontrados</Text>
+        )}
+      </View>
+
+      {mapVisible ? <MapView
+        style={{ flex: 1 }}
+        initialRegion={{
+          latitude: -16.2902,
+          longitude: -63.5887,
+          latitudeDelta: 12,
+          longitudeDelta: 12,
+        }}
+      >
+
+        {places.map((place) => (
+          <Marker
+            key={place.id}
+            ref={(ref) => { markerRefs.current[place.id] = ref; }}
+            coordinate={{ latitude: Number(place.latitud), longitude: Number(place.longitud) }}
+            title={place.nombre}
+            description={place.descripcion}
+            onPress={() => handleMarkerPress(place.id)}
+          />
+        ))}
+      </MapView> : <FlatList
+        style={styles.container}
+        data={places}
+        keyExtractor={(item) => String(item.id)}
+        renderItem={({ item }) => (
+          <Pressable
+            onPress={() => goToPlace(item.id)}
+            style={selectedPlaceId === item.id ? styles.selectedRow : undefined}
+          >
+            <PlaceRow place={item} />
+          </Pressable>
+        )}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
+      />}
+    </View>
   )
 }
 
@@ -71,7 +134,6 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 20,
     paddingVertical: 20,
-    paddingBottom: 40,
   },
   title: {
     fontSize: 40,
@@ -103,8 +165,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'gray',
   },
   resultsCount: {
-    marginBottom: 20,
     color: 'black',
+  },
+  selectedRow: {
+    backgroundColor: '#FFF0F0',
+    borderRadius: 10,
   },
   buttonText: {
     color: 'white',
