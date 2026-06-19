@@ -16,6 +16,7 @@ export default function RootLayout() {
             <Stack.Screen name="advancedSearch" options={{ headerShown: false }} />
             <Stack.Screen name="place" options={{ headerShown: false }} />
             <Stack.Screen name="placeConfirmation" options={{ headerShown: false }} />
+            <Stack.Screen name="myReservations" options={{ headerShown: false }} />
           </Stack>
           <StatusBar style="auto" />
         </SafeAreaView>

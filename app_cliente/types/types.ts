@@ -62,3 +62,17 @@ export type Reserva = {
     precioNoches: number;
     precioServicio: number;
 }
+
+export type ReservaResponse = {
+    id: number;
+    fechaInicio: string;
+    fechaFin: string;
+    precioTotal: string | number;
+    precioLimpieza: string | number;
+    precioNoches: string | number;
+    precioServicio: string | number;
+    created_at?: string;
+    updated_at?: string;
+    cliente?: unknown | null;
+    lugar: PlaceResponse[];
+}

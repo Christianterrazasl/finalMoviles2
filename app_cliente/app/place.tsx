@@ -2,7 +2,6 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   Image,
   ActivityIndicator,
   ScrollView,
@@ -11,7 +10,7 @@ import {
 } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useLocalSearchParams, router } from 'expo-router';
-import { PlaceResponse, Foto } from '@/types/types';
+import { PlaceResponse } from '@/types/types';
 import { getPlaceById } from '@/repositories/places';
 import Colors from '@/constants/colors';
 
@@ -32,10 +31,10 @@ function DetailRow({ label, value }: { label: string; value: string | number }) 
 export default function PlaceDetail() {
   const { placeId } = useLocalSearchParams<{ placeId: string }>();
   const { width } = useWindowDimensions();
-  const photoWidth = width * 0.75;
   const [place, setPlace] = useState<PlaceResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
 
   useEffect(() => {
     const loadPlace = async () => {
@@ -59,6 +58,10 @@ export default function PlaceDetail() {
     loadPlace();
   }, [placeId]);
 
+  useEffect(() => {
+    setSelectedPhotoIndex(0);
+  }, [place?.id]);
+
   if (loading) {
     return (
       <View style={styles.centered}>
@@ -76,6 +79,9 @@ export default function PlaceDetail() {
   }
 
   const fotos = place.fotos ?? [];
+  const selectedPhoto = fotos[selectedPhotoIndex];
+  const selectedUri = getImageUri(selectedPhoto?.url);
+  const mainPhotoWidth = width - 40;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -106,27 +112,42 @@ export default function PlaceDetail() {
       </Pressable>
 
       {fotos.length > 0 ? (
-        <>
+        <View style={styles.photosSection}>
           <Text style={styles.photosTitle}>Fotos</Text>
-          <FlatList
-            horizontal
-            data={fotos}
-            keyExtractor={(item) => String(item.id)}
-            showsHorizontalScrollIndicator={false}
-            nestedScrollEnabled
-            contentContainerStyle={styles.photosList}
-            renderItem={({ item }: { item: Foto }) => {
-              const uri = getImageUri(item.url);
-              return uri ? (
-                <Image
-                  source={{ uri }}
-                  style={[styles.photo, { width: photoWidth }]}
-                  resizeMode="cover"
-                />
-              ) : null;
-            }}
-          />
-        </>
+
+          {selectedUri ? (
+            <Image
+              source={{ uri: selectedUri }}
+              style={[styles.mainPhoto, { width: mainPhotoWidth }]}
+              resizeMode="cover"
+            />
+          ) : null}
+
+          {fotos.length > 1 ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.thumbnailRow}
+            >
+              {fotos.map((item, index) => {
+                const uri = getImageUri(item.url);
+                if (!uri) return null;
+
+                const isSelected = index === selectedPhotoIndex;
+
+                return (
+                  <Pressable key={item.id} onPress={() => setSelectedPhotoIndex(index)}>
+                    <Image
+                      source={{ uri }}
+                      style={[styles.thumbnail, isSelected && styles.thumbnailSelected]}
+                      resizeMode="cover"
+                    />
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          ) : null}
+        </View>
       ) : (
         <Text style={styles.emptyPhotos}>Este lugar no tiene fotos</Text>
       )}
@@ -189,6 +210,31 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 8,
   },
+  photosSection: {
+    gap: 12,
+  },
+  mainPhoto: {
+    height: 260,
+    borderRadius: 10,
+    backgroundColor: Colors.surface,
+  },
+  thumbnailRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingVertical: 4,
+  },
+  thumbnail: {
+    width: 72,
+    height: 72,
+    borderRadius: 8,
+    backgroundColor: Colors.surface,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  thumbnailSelected: {
+    borderColor: Colors.primary,
+    opacity: 1,
+  },
   payButton: {
     backgroundColor: Colors.primary,
     padding: 14,
@@ -201,16 +247,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  photosList: {
-    paddingVertical: 4,
-    gap: 12,
-  },
-  photo: {
-    height: 220,
-    borderRadius: 10,
-    marginRight: 12,
-    backgroundColor: Colors.surface,
   },
   emptyPhotos: {
     fontSize: 14,

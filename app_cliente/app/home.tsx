@@ -6,6 +6,7 @@ import { searchPlaces } from '@/repositories/places';
 import PlaceRow from '@/components/PlaceRow';
 import { router } from 'expo-router';
 import MapView, { Marker, MapMarker } from 'react-native-maps';
+import Fontisto from '@expo/vector-icons/Fontisto';
 
 
 
@@ -68,7 +69,13 @@ export default function home() {
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
 
       <View style={styles.content}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+
         <Text style={styles.title}>Home</Text>
+        <Pressable onPress={() => router.push('/myReservations')}>
+          <Fontisto name="date" size={24} color="black" />
+        </Pressable>
+        </View>
         <TextInput placeholder="Nombre" style={styles.input} value={searchquery} onChangeText={setSearchQuery} />
         <View style={styles.buttonRow}>
           <Pressable onPress={handleSearch} style={styles.button}>
