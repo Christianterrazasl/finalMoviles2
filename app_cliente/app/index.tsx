@@ -9,7 +9,7 @@ import { Redirect } from 'expo-router';
 export default function HomeScreen() {
 
 
-  return <Redirect href="/home" />;
+  // return <Redirect href="/home" />;
 
   return <View style={styles.container}>
     <View style={styles.titleContainer}>
