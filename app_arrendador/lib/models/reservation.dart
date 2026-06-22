@@ -31,13 +31,15 @@ class Reservation {
     this.lugar,
   });
 
-  factory Reservation.fromJson(Map<String, dynamic> json) {
-    Place? lugar;
-    final lugarData = json['lugar'];
-    if (lugarData is Map<String, dynamic>) {
-      lugar = Place.fromJson(lugarData);
-    } else if (lugarData is List && lugarData.isNotEmpty) {
-      lugar = Place.fromJson(lugarData.first as Map<String, dynamic>);
+  factory Reservation.fromJson(Map<String, dynamic> json, {Place? parentPlace}) {
+    Place? lugar = parentPlace;
+    if (lugar == null) {
+      final lugarData = json['lugar'];
+      if (lugarData is Map<String, dynamic>) {
+        lugar = Place.fromJson(lugarData);
+      } else if (lugarData is List && lugarData.isNotEmpty) {
+        lugar = Place.fromJson(lugarData.first as Map<String, dynamic>);
+      }
     }
 
     Cliente? cliente;

@@ -58,43 +58,46 @@ class _ReservationsScreenState extends State<ReservationsScreen> {
           style: const TextStyle(color: AppColors.text, fontWeight: FontWeight.bold),
         ),
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-          : Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.placeName,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.text,
+      body: SafeArea(
+        top: false,
+        child: _loading
+            ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+            : Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.placeName,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.text,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  if (_reservations.isEmpty)
-                    const Expanded(
-                      child: Center(
-                        child: Text(
-                          'No hay reservas para este lugar',
-                          style: TextStyle(fontSize: 16, color: AppColors.textMuted),
+                    const SizedBox(height: 16),
+                    if (_reservations.isEmpty)
+                      const Expanded(
+                        child: Center(
+                          child: Text(
+                            'No hay reservas para este lugar',
+                            style: TextStyle(fontSize: 16, color: AppColors.textMuted),
+                          ),
+                        ),
+                      )
+                    else
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: _reservations.length,
+                          itemBuilder: (context, index) {
+                            return ReservationRow(reservation: _reservations[index]);
+                          },
                         ),
                       ),
-                    )
-                  else
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: _reservations.length,
-                        itemBuilder: (context, index) {
-                          return ReservationRow(reservation: _reservations[index]);
-                        },
-                      ),
-                    ),
-                ],
+                  ],
+                ),
               ),
-            ),
+      ),
     );
   }
 }

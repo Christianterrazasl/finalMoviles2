@@ -101,9 +101,25 @@ class ApiService {
       throw Exception('No se pudieron cargar las reservas');
     }
     final data = jsonDecode(response.body);
-    if (data is! List) return [];
-    return data
-        .map((e) => Reservation.fromJson(e as Map<String, dynamic>))
-        .toList();
+
+    // El API devuelve el lugar con las reservas anidadas en "reservas"
+    if (data is Map<String, dynamic>) {
+      final place = Place.fromJson(data);
+      final reservasJson = data['reservas'] as List<dynamic>? ?? [];
+      return reservasJson
+          .map((e) => Reservation.fromJson(
+                e as Map<String, dynamic>,
+                parentPlace: place,
+              ))
+          .toList();
+    }
+
+    if (data is List) {
+      return data
+          .map((e) => Reservation.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+
+    return [];
   }
 }

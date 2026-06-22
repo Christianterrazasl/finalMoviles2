@@ -43,7 +43,7 @@ class _PlaceFormScreenState extends State<PlaceFormScreen> {
   bool _tieneWifi = false;
   bool _loading = false;
   bool _loadingData = false;
-  LatLng _selectedLocation = const LatLng(-16.2902, -63.5887);
+  LatLng _selectedLocation = const LatLng(-17.783334, -63.182108);
   final List<File> _newPhotos = [];
   List<String> _existingPhotoUrls = [];
 
@@ -144,10 +144,6 @@ class _PlaceFormScreenState extends State<PlaceFormScreen> {
         'arrendatario_id': widget.arrendatarioId,
       };
 
-      if (widget.isEditing) {
-        body['id'] = widget.placeId;
-      }
-
       final lugarId = await ApiService.savePlace(body);
 
       for (final photo in _newPhotos) {
@@ -190,15 +186,17 @@ class _PlaceFormScreenState extends State<PlaceFormScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: AppColors.text),
         title: Text(
-          widget.isEditing ? 'Editar lugar' : 'Nuevo lugar',
+          widget.isEditing ? 'Ver lugar' : 'Nuevo lugar',
           style: const TextStyle(color: AppColors.text, fontWeight: FontWeight.bold),
         ),
       ),
-      body: _loadingData
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
+      body: SafeArea(
+        top: false,
+        child: _loadingData
+            ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _sectionTitle('Fotos'),
@@ -208,16 +206,17 @@ class _PlaceFormScreenState extends State<PlaceFormScreen> {
                     children: [
                       ..._existingPhotoUrls.map(_existingPhoto),
                       ..._newPhotos.map(_newPhoto),
-                      _addPhotoButton(),
+                      if (!widget.isEditing) _addPhotoButton(),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  AppTextField(hint: 'Nombre', controller: _nombreController),
+                  AppTextField(hint: 'Nombre', controller: _nombreController, readOnly: widget.isEditing),
                   const SizedBox(height: 10),
                   AppTextField(
                     hint: 'Descripción',
                     controller: _descripcionController,
                     maxLines: 3,
+                    readOnly: widget.isEditing,
                   ),
                   const SizedBox(height: 10),
                   _numberField('Personas', _personasController),
@@ -234,7 +233,7 @@ class _PlaceFormScreenState extends State<PlaceFormScreen> {
                     value: _tieneWifi,
                     activeTrackColor: AppColors.primary.withValues(alpha: 0.4),
                     thumbColor: WidgetStateProperty.all(AppColors.primary),
-                    onChanged: (v) => setState(() => _tieneWifi = v),
+                    onChanged: widget.isEditing ? null : (v) => setState(() => _tieneWifi = v),
                   ),
                   const SizedBox(height: 10),
                   _numberField('Parqueo (vehículos)', _parqueoController),
@@ -243,7 +242,7 @@ class _PlaceFormScreenState extends State<PlaceFormScreen> {
                   const SizedBox(height: 10),
                   _numberField('Costo de limpieza', _limpiezaController),
                   const SizedBox(height: 10),
-                  AppTextField(hint: 'Ciudad', controller: _ciudadController),
+                  AppTextField(hint: 'Ciudad', controller: _ciudadController, readOnly: widget.isEditing),
                   const SizedBox(height: 16),
                   _sectionTitle('Ubicación en el mapa'),
                   SizedBox(
@@ -254,10 +253,12 @@ class _PlaceFormScreenState extends State<PlaceFormScreen> {
                         mapController: _mapController,
                         options: MapOptions(
                           initialCenter: _selectedLocation,
-                          initialZoom: 14,
-                          onTap: (_, point) {
-                            setState(() => _selectedLocation = point);
-                          },
+                          initialZoom: 12,
+                          onTap: widget.isEditing
+                              ? null
+                              : (_, point) {
+                                  setState(() => _selectedLocation = point);
+                                },
                         ),
                         children: [
                           TileLayer(
@@ -290,29 +291,28 @@ class _PlaceFormScreenState extends State<PlaceFormScreen> {
                   ),
                   const SizedBox(height: 20),
                   if (widget.isEditing)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: OutlinedButton(
-                        onPressed: _openReservations,
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.secondary,
-                          side: const BorderSide(color: AppColors.secondary),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                        child: const Text(
-                          'Ver reservas',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
+                    OutlinedButton(
+                      onPressed: _openReservations,
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.secondary,
+                        side: const BorderSide(color: AppColors.secondary),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: const Text(
+                        'Ver reservas',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     ),
-                  PrimaryButton(
-                    label: 'Guardar',
-                    loading: _loading,
-                    onPressed: _save,
-                  ),
+                  if (!widget.isEditing)
+                    PrimaryButton(
+                      label: 'Guardar',
+                      loading: _loading,
+                      onPressed: _save,
+                    ),
                 ],
               ),
             ),
+      ),
     );
   }
 
@@ -335,6 +335,7 @@ class _PlaceFormScreenState extends State<PlaceFormScreen> {
       hint: hint,
       controller: controller,
       keyboardType: TextInputType.number,
+      readOnly: widget.isEditing,
     );
   }
 

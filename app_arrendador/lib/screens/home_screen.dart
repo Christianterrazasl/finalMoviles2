@@ -98,59 +98,62 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => _openPlaceForm(),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+      body: SafeArea(
+        top: false,
+        child: _loading
+            ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => _openPlaceForm(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          'Agregar lugar',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                       ),
-                      child: const Text(
-                        'Agregar lugar',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                if (_places.isEmpty)
-                  const Expanded(
-                    child: Center(
-                      child: Text(
-                        'No tienes lugares registrados',
-                        style: TextStyle(fontSize: 16, color: AppColors.textMuted),
+                  const SizedBox(height: 8),
+                  if (_places.isEmpty)
+                    const Expanded(
+                      child: Center(
+                        child: Text(
+                          'No tienes lugares registrados',
+                          style: TextStyle(fontSize: 16, color: AppColors.textMuted),
+                        ),
+                      ),
+                    )
+                  else
+                    Expanded(
+                      child: ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        itemCount: _places.length,
+                        separatorBuilder: (context, index) => const Divider(color: AppColors.border),
+                        itemBuilder: (context, index) {
+                          final place = _places[index];
+                          return PlaceRow(
+                            place: place,
+                            onTap: () => _openPlaceForm(place: place),
+                          );
+                        },
                       ),
                     ),
-                  )
-                else
-                  Expanded(
-                    child: ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                      itemCount: _places.length,
-                      separatorBuilder: (context, index) => const Divider(color: AppColors.border),
-                      itemBuilder: (context, index) {
-                        final place = _places[index];
-                        return PlaceRow(
-                          place: place,
-                          onTap: () => _openPlaceForm(place: place),
-                        );
-                      },
-                    ),
-                  ),
-              ],
-            ),
+                ],
+              ),
+      ),
     );
   }
 }
