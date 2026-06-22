@@ -1,4 +1,4 @@
-{
+export default {
   "expo": {
     "name": "app_cliente",
     "slug": "app_cliente",
@@ -12,6 +12,11 @@
       "supportsTablet": true
     },
     "android": {
+      "config":{
+        "googleMaps":{
+          "apiKey": process.env.GOOGLE_MAPS_API_KEY
+        }
+      },
       "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -48,4 +53,4 @@
       "typedRoutes": true
     }
   }
-}
+};
